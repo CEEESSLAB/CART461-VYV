@@ -63,13 +63,25 @@ void determine_code_location() {
 
 void loop() {
 
+  if(Serial.available()) {
+    String _t;
+
+    while(Serial.available()) {
+    _t += (char)Serial.read();
+    }
+
+    Serial.print("Received: ASCII");
+    Serial.println(_t.c_str());
+  }
+  
+
   /* EXTERNAL 10K OHM RESISTOR */
   if(digitalRead( B_TN ) == HIGH) {
     determine_code_location();
     b_tn++;
     delay(125);
-    Serial.println(b_tn);
-    Serial.println("B_TN ACTIVE");
+    //Serial.println(b_tn);
+    //Serial.println("B_TN ACTIVE");
   }
   
   switch(b_tn % 5) {

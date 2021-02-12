@@ -72,6 +72,59 @@ void determine_code_location() {
 
 void loop() {
 
+  if(Serial.available()) {
+    String _t;
+
+    while(Serial.available()) {
+    _t += (char)Serial.read();
+    }
+
+    Serial.print("Received: ASCII");
+    Serial.println(_t.c_str());
+  }
   
 
+  /* EXTERNAL 10K OHM RESISTOR */
+  if(digitalRead( B_TN ) == HIGH) {
+    determine_code_location();
+    b_tn++;
+    delay(125);
+    //Serial.println(b_tn);
+    //Serial.println("B_TN ACTIVE");
+  }
+  
+  switch(b_tn % 5) {
+    
+    case 0: 
+    analogWrite(G_LED, 0, 100); 
+    analogWrite(B_LED, 0, 100); 
+    analogWrite(WHITE_LED, 0, 100);
+    analogWrite(R_LED, map(analogRead( LDR ), 0, 4095, 0, analogRead( LDR )/16 ), 100); 
+    break;
+    case 1: 
+    analogWrite(R_LED, 0, 100); 
+    analogWrite(B_LED, 0, 100); 
+    analogWrite(WHITE_LED, 0, 100);
+    analogWrite(G_LED, map(analogRead( LDR ), 0, 4095, 0, analogRead( LDR )/16 ), 100); 
+    break;
+    case 2: 
+    analogWrite(G_LED, 0, 100); 
+    analogWrite(R_LED, 0, 100);
+    analogWrite(WHITE_LED, 0, 100); 
+    analogWrite(B_LED, map(analogRead( LDR ), 0, 4095, 0, analogRead( LDR )/16 ), 100); 
+    break;
+    case 3: 
+    analogWrite(WHITE_LED, 0, 100);
+    analogWrite(R_LED, map(analogRead( LDR ), 0, 4095, 0, analogRead( LDR )/16 ), 100); 
+    analogWrite(G_LED, map(analogRead( LDR ), 0, 4095, 0, analogRead( LDR )/16 ), 100); 
+    analogWrite(B_LED, map(analogRead( LDR ), 0, 4095, 0, analogRead( LDR )/16 ), 100); 
+    break;
+    default: 
+    analogWrite(G_LED, 0, 100); 
+    analogWrite(R_LED, 0, 100); 
+    analogWrite(B_LED, 0, 100); 
+    analogWrite(WHITE_LED, analogRead( LDR )/16, 100);
+  }
+
+  if(b_tn > 255) b_tn = -1;
 }
