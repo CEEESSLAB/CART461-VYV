@@ -36,7 +36,7 @@
 #include "IntervalTimer.h"
 #include <ADC.h>
 #elif IS_STM32()
-#include "HardwareTimer.h"
+//#include "HardwareTimer.h"
 #include <STM32ADC.h>
 #elif IS_ESP8266()
 #include <uart.h>
