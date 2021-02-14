@@ -39,7 +39,7 @@ void setup() {
   Particle.function("playTrack", playTrack);
   Particle.function("setVolume", setVolume);
   Particle.variable("temo", trackNumber);
-  Particle.variable("MY_KEEPER_IS: ", "SABINE @ N.D.G", STRING);
+  Particle.variable("MY_KEEPER_IS: ", "ME @ N.D.G", STRING);
   
   
   if (!SD.begin(SD_CS)) {
