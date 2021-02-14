@@ -1,4 +1,22 @@
 // ********************************************************************** /
+// This is a library for the Adafruit VS1053 Codec Breakout
+//
+// Designed specifically to work with the Adafruit VS1053 Codec Breakout 
+// ----> https://www.adafruit.com/products/1381
+//       https://www.adafruit.com/product/3357
+//       https://www.adafruit.com/product/3436
+// 
+// Adafruit invests time and resources providing this open source code, 
+// please support Adafruit and open-source hardware by purchasing 
+// products from Adafruit!
+//// Written by Limor Fried/Ladyada for Adafruit Industries.  
+// BSD license, all text above must be included in any redistribution
+// 
+// Original library: https://github.com/adafruit/Adafruit_VS1053_Library
+// 
+// Ported for Particle by ScruffR
+// Forked and ported: https://github.com/ScruffR/Adafruit_VS1053_Library
+// ********************************************************************** /
 //
 // To run this example prepare a micro SD card with a file hierarchy like
 // SD:
@@ -28,19 +46,14 @@ const int  MP3_DCS          = D5;                 // VS1053 Data/command select 
 const char *fileNamePattern = "%03d.mp3";         // file name pattern to insert track number
 Adafruit_VS1053_FilePlayer musicPlayer(MP3_RESET, MP3_CS, MP3_DCS, DREQ, SD_CS); 
 
-int        trackNumber      = 1;
-bool       needStart        = true;
-
-
+int        trackNumber      = 0;
+bool       needStart        = false;
 
 void setup() {
   pinMode(D7, OUTPUT);
   Particle.function("playSine", playSine);
   Particle.function("playTrack", playTrack);
   Particle.function("setVolume", setVolume);
-  Particle.variable("temo", trackNumber);
-  Particle.variable("MY_KEEPER_IS: ", "SABINE @ N.D.G", STRING);
-  
   
   if (!SD.begin(SD_CS)) {
     Log.error("SD failed, or not present");
@@ -65,23 +78,35 @@ void setup() {
   SD.ls(&Serial, LS_R);
 
   // Set volume for left, right channels. lower numbers == louder volume!
-  musicPlayer.setVolume(0, 0);
+  //musicPlayer.setVolume(20, 20);
 
   // ***** Two interrupt options! ***** 
   // This option uses timer0, this means timer1 & t2 are not required
   // (so you can use 'em for Servos, etc) BUT millis() can lose time
   // since we're hitchhiking on top of the millis() tracker
-  musicPlayer.useInterrupt(VS1053_FILEPLAYER_TIMER0_INT);
+  //musicPlayer.useInterrupt(VS1053_FILEPLAYER_TIMER0_INT);
+  
+  // This option uses a pin interrupt. No timers required! But DREQ
+  // must be on an interrupt pin. For Uno/Duemilanove/Diecimilla
+  // that's Digital #2 or #3
+  // See http://arduino.cc/en/Reference/attachInterrupt for other pins
+  // *** This method is preferred ***
+
+  if (musicPlayer.useInterrupt(VS1053_FILEPLAYER_PIN_INT))
+  {
+    digitalWrite(D7, HIGH);
+    musicPlayer.setIsrCallback(blink);
+  }
+  else
+    Log.info("DREQ pin is not an interrupt pin");
 
   // Alternatively just play an entire file at once
   // This doesn't happen in the background, instead, the entire
   // file is played and the program will continue when it's done!
-  //musicPlayer.playFullFile("001.mp3");
-  //playTrack("001");
+  // musicPlayer.playFullFile("001.mp3");
 }
 
 void loop() {
-  //Serial.println("playing - I hope");
   static uint32_t msPlayStarted = 0;
   static uint32_t msLastAction = 0;
 
@@ -97,7 +122,6 @@ void loop() {
       Log.trace("Started: %lu", micros() - us); us = micros();
       snprintf(msg, sizeof(msg), "Started playing '%s'",fileName);
       msPlayStarted = millis();
-      
     }
     else {
       Log.trace("Not started: %lu", micros() - us); us = micros();
@@ -114,7 +138,6 @@ void loop() {
     msLastAction = millis();
     Serial.printf("\r%02lu:%02lu %s  ", sec / 60, sec % 60, musicPlayer.playingMusic ? "playing" : "stopped");
   }
-  
 }
 
 int playTrack(const char* arg) {
@@ -143,3 +166,6 @@ int playSine(const char* arg) {
   return freq;
 }
 
+void blink(void) {
+  digitalWriteFast(D7, !pinReadFast(D7));
+}
