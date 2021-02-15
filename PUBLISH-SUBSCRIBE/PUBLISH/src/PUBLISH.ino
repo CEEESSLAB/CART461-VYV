@@ -32,7 +32,7 @@ void setup() {
     MORE ABOUT FUNCTIONS AND VARIABLES IN A FUTURE WORKSHOP (#3). 
   */
   //Particle.function("whiteled", whiteled);
-  Particle.variable("location", "ME @ WESTMOUNT", STRING);
+  Particle.variable("location", "ME @ MTL", STRING);
 
   /* PARTICLE PUBLISH 'n' SUBSCRIBE ARE MULTICAST OPERATIONS - FULLY CONNECTED 
     SIMPLY SUBSCRIBE TO A KNOWN DATA SOURCE OR PUBLISH DATA AS SOURCE
@@ -88,6 +88,29 @@ void someothersBTN(const char *event, const char *data) {
   In our case, the event will be "someothersBTN" and the data will be "1" or "0". We're going to 
   strcmp(), which compares two chars. If they are the same, strcmp will return 0.
   */
+
+ /* EXAMPLE TOKENISER */
+ // data = "45.4786288,-73.617024,45.4953688,-73.57799640000002";
+    // vector<string> result;
+    // char* token; 
+    
+    // int strlenData = strlen(data);
+    // char copyData[strlenData]; 
+    // //make a copy
+    // strcpy(copyData, data);
+  
+    // token = strtok(copyData, ","); 
+    // result.push_back( token );
+     
+    // // delimiters present in str[]. 
+    // while (token != NULL) { 
+    //   token = strtok(NULL, ","); 
+    //   result.push_back(token);
+    // } 
+
+    // for(int i =0; i < 4; i++)
+    //     Serial.println( result[i].c_str()  );
+    Serial.println( data  );
 
    if (strcmp(data, "1") == 0) {
     digitalWrite(WHITE_LED, HIGH);
