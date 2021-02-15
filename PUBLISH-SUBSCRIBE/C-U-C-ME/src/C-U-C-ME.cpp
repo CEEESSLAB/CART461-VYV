@@ -14,17 +14,17 @@
 
 /* THESE ARE PARTICLE SPECIFIC PARAMETERS APPLIED AT CODE RUNTIME */
 /* ALWAYS RUN PARTICLE CLOUD COMMUNICATION IN SEPARATE THREAD */ 
-//SYSTEM_THREAD(ENABLED);
+void setup();
+void loop();
+void others_ldr(const char *event, const char *data);
+#line 12 "/Users/eo/Documents/CART461-2021/PUBLISH-SUBSCRIBE/C-U-C-ME/src/C-U-C-ME.ino"
+SYSTEM_THREAD(ENABLED);
 
 /* HOW TO CONNECT TO WiFi & INTERNET: AUTOMATIC, SEMI_AUTOMATIC, MANUAL */
 //SYSTEM_MODE(AUTOMATIC); // DONE BY DEFAULT
 //SYSTEM_MODE(SEMI_AUTOMATIC); // CONTROL WHEN & HOW TO CONNECT TO PARTICLE CLOUD (WIFI RADIO ON)
 //SYSTEM_MODE(MANUAL); // CONTROL WHEN & HOW TO CONNECT TO WIFI NETWORK
 
-void setup();
-void loop();
-void others_ldr(const char *event, const char *data);
-#line 19 "/Users/eo/Documents/CART461-2021/PUBLISH-SUBSCRIBE/C-U-C-ME/src/C-U-C-ME.ino"
 #define DEBUG_LED D7 // SMALL BLUE LED NEXT USB CONNECTOR (RIGHT OF USB)
 #define WHITE_LED D2 // GOOD OL' LED
 #define R_LED     D6 // RED LED
@@ -54,7 +54,8 @@ void setup() {
   Particle.subscribe("others-ldr", others_ldr);
 
   Serial.begin(57600);
-  while( !Serial.isConnected() ) // wait for Host to open serial port
+  //while( !Serial.isConnected() ) // wait for Host to open serial port
+  waitFor(Serial.isConnected, 15000); 
 
   /* BLUE DEBUG LED */
   pinMode(DEBUG_LED, OUTPUT);
@@ -86,5 +87,5 @@ void loop() {
 
 /* PARTICLE CLOUD SUBSCRIBE CALLBACK */
 void others_ldr(const char *event, const char *data) {
-  Log.info("event=%s data=%s", event, (data ? data : "NULL"));
+  //Log.info("event=%s data=%s", event, (data ? data : "NULL"));
 }

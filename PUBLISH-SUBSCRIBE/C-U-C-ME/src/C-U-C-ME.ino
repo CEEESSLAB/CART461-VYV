@@ -9,7 +9,7 @@
 
 /* THESE ARE PARTICLE SPECIFIC PARAMETERS APPLIED AT CODE RUNTIME */
 /* ALWAYS RUN PARTICLE CLOUD COMMUNICATION IN SEPARATE THREAD */ 
-//SYSTEM_THREAD(ENABLED);
+SYSTEM_THREAD(ENABLED);
 
 /* HOW TO CONNECT TO WiFi & INTERNET: AUTOMATIC, SEMI_AUTOMATIC, MANUAL */
 //SYSTEM_MODE(AUTOMATIC); // DONE BY DEFAULT
@@ -45,7 +45,8 @@ void setup() {
   Particle.subscribe("others-ldr", others_ldr);
 
   Serial.begin(57600);
-  while( !Serial.isConnected() ) // wait for Host to open serial port
+  //while( !Serial.isConnected() ) // wait for Host to open serial port
+  waitFor(Serial.isConnected, 15000); 
 
   /* BLUE DEBUG LED */
   pinMode(DEBUG_LED, OUTPUT);
@@ -77,5 +78,5 @@ void loop() {
 
 /* PARTICLE CLOUD SUBSCRIBE CALLBACK */
 void others_ldr(const char *event, const char *data) {
-  Log.info("event=%s data=%s", event, (data ? data : "NULL"));
+  //Log.info("event=%s data=%s", event, (data ? data : "NULL"));
 }
