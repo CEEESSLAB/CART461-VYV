@@ -28,7 +28,7 @@ const int  MP3_DCS          = D5;                 // VS1053 Data/command select 
 const char *fileNamePattern = "%03d.mp3";         // file name pattern to insert track number
 Adafruit_VS1053_FilePlayer musicPlayer(MP3_RESET, MP3_CS, MP3_DCS, DREQ, SD_CS); 
 
-int        trackNumber      = 1;
+int        trackNumber      = 0;
 bool       needStart        = true;
 
 
@@ -71,7 +71,7 @@ void setup() {
   // This option uses timer0, this means timer1 & t2 are not required
   // (so you can use 'em for Servos, etc) BUT millis() can lose time
   // since we're hitchhiking on top of the millis() tracker
-  musicPlayer.useInterrupt(VS1053_FILEPLAYER_TIMER0_INT);
+  //musicPlayer.useInterrupt(VS1053_FILEPLAYER_TIMER0_INT);
 
   // Alternatively just play an entire file at once
   // This doesn't happen in the background, instead, the entire
