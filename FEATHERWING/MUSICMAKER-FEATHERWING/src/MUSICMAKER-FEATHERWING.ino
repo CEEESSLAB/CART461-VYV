@@ -35,11 +35,11 @@ bool       needStart        = true;
 
 void setup() {
   pinMode(D7, OUTPUT);
-  Particle.function("playSine", playSine);
-  Particle.function("playTrack", playTrack);
-  Particle.function("setVolume", setVolume);
-  Particle.variable("temo", trackNumber);
-  Particle.variable("MY_KEEPER_IS: ", "ME @ N.D.G", STRING);
+  // Particle.function("playSine", playSine);
+  // Particle.function("playTrack", playTrack);
+  // Particle.function("setVolume", setVolume);
+  // Particle.variable("temo", trackNumber);
+  Particle.variable("attributed", "ME @ N.D.G", STRING);
   
   
   if (!SD.begin(SD_CS)) {
