@@ -21,7 +21,7 @@
 
 ## VSCode directories
 .vscode
-target
+target/*
 src/*.cpp
 
 #################
