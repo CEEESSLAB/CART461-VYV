@@ -21,6 +21,8 @@
 
 ## VSCode directories
 .vscode
+target
+src/*.cpp
 
 #################
 ## Eclipse
