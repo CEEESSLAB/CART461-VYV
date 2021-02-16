@@ -1,3 +1,8 @@
+/******************************************************/
+//       THIS IS A GENERATED FILE - DO NOT EDIT       //
+/******************************************************/
+
+#line 1 "/Users/eo/Documents/CART461-2021/HELLO-WORLD/src/HELLO-WORLD.ino"
 /*
  * Project HELLO-WORLD
  * Description: Introduction to Particle Argon
@@ -9,6 +14,10 @@
   THESE ARE PARTICLE SPECIFIC PARAMETERS APPLIED AT CODE RUNTIME
   RUN ALL PARTICLE CLOUD COMMUNICATION IN SEPARATE THREAD 
 */
+void setup();
+void determine_code_location();
+void loop();
+#line 12 "/Users/eo/Documents/CART461-2021/HELLO-WORLD/src/HELLO-WORLD.ino"
 SYSTEM_THREAD(ENABLED);
 /* HOW TO CONNECT TO WiFi & INTERNET: AUTOMATIC, SEMI_AUTOMATIC, MANUAL */
 //SYSTEM_MODE(SEMI_AUTOMATIC);
@@ -86,5 +95,8 @@ void loop() {
     analogWrite(WHITE_LED, 255);
   }
 
+
 digitalWrite(WHITE_LED, 0);
+
+
 }
