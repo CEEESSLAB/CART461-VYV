@@ -6,6 +6,8 @@
  */
 
 #include <Particle.h>
+#include <vector>
+using namespace std;
 
 /* THESE ARE PARTICLE SPECIFIC PARAMETERS APPLIED AT CODE RUNTIME */
 /* ALWAYS RUN PARTICLE CLOUD COMMUNICATION IN SEPARATE THREAD */ 
@@ -22,7 +24,7 @@ SYSTEM_THREAD(ENABLED);
 #define G_LED     D5 // GREEN LED
 #define B_LED     D4 // BLUE LED
 #define LDR       A0 // ANALOG_IN = ( 0 ... 4095 ) => 2^12 bits.
-#define B_TN      D0 // MOMENTARY BUTTON
+#define B_TN      D2 // MOMENTARY BUTTON
 
 void setup() {
 
@@ -70,7 +72,7 @@ void loop() {
 
         //Particle.publish("a-ble-centralBTN", "GUDRUN", PRIVATE); //ONLY PRIVATE OR DEVICE ID
         //bool success = Particle.publish("a-ble-centralBTN", "1", PRIVATE);
-        if( Particle.publish("a-ble-centralBTN", "1", PRIVATE) ) Serial.println ("published");
+        if( Particle.publish("a-ble-centralBTN", "45.4786288,-73.617024,45.4953688,-73.57799640000002") ) Serial.println ("published");
         delay(1001); // PUBLISH ONCE PER SECOND
 
         digitalWrite(DEBUG_LED, LOW);
@@ -90,27 +92,28 @@ void someothersBTN(const char *event, const char *data) {
   */
 
  /* EXAMPLE TOKENISER */
- // data = "45.4786288,-73.617024,45.4953688,-73.57799640000002";
-    // vector<string> result;
-    // char* token; 
-    
-    // int strlenData = strlen(data);
-    // char copyData[strlenData]; 
-    // //make a copy
-    // strcpy(copyData, data);
-  
-    // token = strtok(copyData, ","); 
-    // result.push_back( token );
-     
-    // // delimiters present in str[]. 
-    // while (token != NULL) { 
-    //   token = strtok(NULL, ","); 
-    //   result.push_back(token);
-    // } 
+    //char *datas = "45.4786288,-73.617024,45.4953688,-73.57799640000002";
+     vector<string> result;
+      //get original length
+    char copyData[strlen(data)];
+    strcpy(copyData, data);
 
-    // for(int i =0; i < 4; i++)
-    //     Serial.println( result[i].c_str()  );
-    Serial.println( data  );
+    char* token; 
+
+    //get a token 
+    token = strtok(copyData, ",");
+
+    while (token != NULL) { 
+    //add to the result array
+      result.push_back(token);
+      // strtok() contains a static pointer to the previous passed string
+      token = strtok(NULL, ","); 
+    } 
+
+    for(int i=0; i<result.size();i++){
+        Serial.println( result.at(i).c_str() );
+    }
+    Serial.println("called");
 
    if (strcmp(data, "1") == 0) {
     digitalWrite(WHITE_LED, HIGH);
