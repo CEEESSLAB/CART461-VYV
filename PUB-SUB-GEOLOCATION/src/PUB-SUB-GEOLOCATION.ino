@@ -164,20 +164,6 @@ void locationCallback(float lat, float lon, float accu) {
   digitalWrite(G_LED, HIGH);
   delay(1002);
   digitalWrite(G_LED, LOW);
-    
-    // char dataToSend[1024];
-    // snprintf(dataToSend, sizeof(dataToSend), 
-    //         "{\"lat\":%f,\"lon\":%f,\"accu\":%f, \"A\":%f,\"B\":%f,\"C\":%f,\"D\":%f,\"E\":%f,\"F\":%f, \"G\":%f,\"H\":%f,\"I\":%f,\"J\":%f,\"K\":%f,\"L\":%f, \"R\":%f,\"S\":%f,\"T\":%f,\"U\":%f,\"V\":%f,\"W\":%f}", 
-    //         lat, lon, accuracy, 
-    //         sensor.getCalibratedA(), sensor.getCalibratedB(), sensor.getCalibratedC(), sensor.getCalibratedD(), sensor.getCalibratedE(), sensor.getCalibratedF(),
-    //         sensor.getCalibratedG(), sensor.getCalibratedH(), sensor.getCalibratedH(), sensor.getCalibratedJ(), sensor.getCalibratedK(), sensor.getCalibratedL(),
-    //         sensor.getCalibratedR(), sensor.getCalibratedS(), sensor.getCalibratedT(), sensor.getCalibratedU(), sensor.getCalibratedV(), sensor.getCalibratedW());
-    
-    //Serial.println(dataToSend);
-    
-    // USE A WEBHOOK 
-    //Particle.publish("triad", dataToSend, PRIVATE);
-
 }
 
 
