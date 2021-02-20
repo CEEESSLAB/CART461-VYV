@@ -1,3 +1,8 @@
+/******************************************************/
+//       THIS IS A GENERATED FILE - DO NOT EDIT       //
+/******************************************************/
+
+#line 1 "/Users/eo/Documents/CART461-2021/PUB-SUB-GEOLOCATION/src/PUBLISH-SUBSCRIBE.ino"
 /********************************************************************************
  * Project PUB-SUB GEOLOACTION 
  * Description: This example will illustrate how to fully exploit the Particle 
@@ -16,6 +21,14 @@
 
 /* IMU IMPLEMENTATION */
 #include "Razor.h"
+String accelerometer();
+String magnetometer();
+String gyrometer();
+String yawPitchRollMagnitude();
+void setup();
+void loop();
+void cslabprolineimu(const char *event, const char *data);
+#line 19 "/Users/eo/Documents/CART461-2021/PUB-SUB-GEOLOCATION/src/PUBLISH-SUBSCRIBE.ino"
 IMU imu;
 
 /* ALWAYS RUN PARTICLE CLOUD COMMUNICATION IN SEPARATE THREAD */ 
@@ -101,7 +114,6 @@ void loop() {
   /* IMU RUN @ 50Hz */
   imu.loop();
 
-  /* EVENT WHICH INDUCES A PARTICLE PUBLISH ROUTINE */
   if( digitalRead(B_TN) == LOW ) {
     /* UPDATE IMU READINGS: ACCELERO[3], MAGENTO[3], GYRO[3], YAW, PITCH, ROLL, HEADING */
     /* ACCESS UPDATED IMU STATE */
