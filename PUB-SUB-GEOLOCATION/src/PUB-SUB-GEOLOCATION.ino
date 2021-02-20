@@ -45,7 +45,6 @@ float * gyro;
 float yaw, pitch, roll, magnitude, latitude, longitude, accuracy;
 
 char buffer[256];
-char * _stateofrgbled;
 
 /* PARTICLE CLOUD API VARIABLES */
 String accelerometer() {
