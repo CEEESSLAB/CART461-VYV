@@ -116,8 +116,8 @@ void loop() {
 
   /* UPDATE IMU READINGS: ACCELERO[3], MAGENTO[3], GYRO[3], YAW, PITCH, ROLL, HEADING */
   /* ACCESS UPDATED IMU STATE */
-	accel = imu.getAccelerometer();  
-	magnetom = imu.getMagnetometer();
+  accel = imu.getAccelerometer();  
+  magnetom = imu.getMagnetometer();
   gyro = imu.getGyrometer();
   yaw = imu.getYaw();
   pitch = imu.getPitch();
@@ -127,7 +127,7 @@ void loop() {
   /* GOOGLE GEOLOCATION LOOP - OPTIONAL (CAN BE REMOVED) */
   locator.loop(); // 
 
-  /* EVENT WHICH INDUCES A PARTICLE PUBLISH ROUTINE */
+  /* EVENT WHICH INDUCES A GOOGLE GEOLOCATION REQUEST & PARTICLE PUBLISH ROUTINE */
   if( digitalRead(B_TN) == LOW ) {
     /* REQUEST LOCATION FROM GOOGLE */
     locator.publishLocation();
