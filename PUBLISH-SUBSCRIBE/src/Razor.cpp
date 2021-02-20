@@ -141,7 +141,7 @@ void IMU::loop() {
       //if (output_stream_on || output_single_on) output_sensors();
     }
     
-    //output_single_on = true;
+    output_single_on = true;
     
 #if DEBUG__PRINT_LOOP_TIME == true
     Serial.print("loop time (ms) = ");

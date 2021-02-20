@@ -336,7 +336,16 @@ class IMU {
 	void turn_output_stream_off();
 	char readChar();
 	void readInput();
-	
+
+  // Razor.cpp Accessor Methods
+  float * getAccelerometer() { return accel; };
+  float * getMagnetometer() { return magnetom; };
+  float * getGyrometer() { return gyro; };
+	float getYaw() { return (yaw * 57.2957795131); };
+  float getPitch() { return (pitch * 57.2957795131); };
+  float getRoll() { return (roll * 57.2957795131); }
+  float getMagnitude() { return MAG_Heading; };
+
 	// Razor Constructor
 	IMU();
 	void loop();
