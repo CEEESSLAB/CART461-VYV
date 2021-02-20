@@ -22,6 +22,18 @@ IMU imu;
 #include "google-maps-device-locator.h"
 GoogleMapsDeviceLocator locator;
 
+/* PARTICLE CLOUD HTTP CLIENT */
+// #include "HttpClient.h"
+//  HttpClient http;  
+//  http_header_t headers[] = {  
+//     { "Content-Type", "application/json" },  
+//     { NULL, NULL }   // { NULL, NULL, ... }
+//  };  
+ 
+//  http_request_t request;  
+//  http_response_t response;
+
+
 /* ALWAYS RUN PARTICLE CLOUD COMMUNICATION IN SEPARATE THREAD */ 
 SYSTEM_THREAD(ENABLED);
 
