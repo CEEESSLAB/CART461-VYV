@@ -32,18 +32,15 @@ SYSTEM_MODE(AUTOMATIC); // DONE BY DEFAULT
 #define B_TN      D2 // MOMENTARY BUTTON
 
 /* TIMER */
-	unsigned long timed = 0;
-	unsigned long timepassed;
+unsigned long timed = 0;
+unsigned long timepassed;
 
 /* VARIABLES USED FOR BOTH PARTICLE CLOUD VARIABLES AND PARTICLE SUBSCRIPTION
   - IMU ACCELERO, MAGNETO, GYRO */
-	float * accel;  
-	float * magnetom;
-	float * gyro;
-	float yaw;
-	float pitch;
-	float roll;
-	float magnitude;
+float * accel;  
+float * magnetom;
+float * gyro;
+float yaw, pitch, roll, magnitude;
 
 char buffer[256];
 char * _stateofrgbled;
@@ -126,8 +123,8 @@ void loop() {
   if (timed - timepassed > 1002 ) {
     /* UPDATE IMU READINGS: ACCELERO[3], MAGENTO[3], GYRO[3], YAW, PITCH, ROLL, HEADING */
     /* ACCESS UPDATED IMU STATE */
-	  accel = imu.getAccelerometer();  
-	  magnetom = imu.getMagnetometer();
+    accel = imu.getAccelerometer();  
+    magnetom = imu.getMagnetometer();
     gyro = imu.getGyrometer();
     yaw = imu.getYaw();
     pitch = imu.getPitch();
