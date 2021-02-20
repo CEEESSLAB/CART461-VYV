@@ -1,3 +1,8 @@
+/******************************************************/
+//       THIS IS A GENERATED FILE - DO NOT EDIT       //
+/******************************************************/
+
+#line 1 "/Users/eo/Documents/CART461-2021/PUBLISH-SUBSCRIBE/src/PUBLISH-SUBSCRIBE.ino"
 /********************************************************************************
  * Project PUBLISH AND SUBSCRIBE 
  * Description: This example will illustrate how to fully exploit the Particle 
@@ -14,6 +19,15 @@
 
 /* IMU IMPLEMENTATION */
 #include "Razor.h"
+String accelerometer();
+String magnetometer();
+String gyrometer();
+String yawPitchRollMagnitude();
+void setup();
+void loop();
+void someothersLDR(const char *event, const char *data);
+void someothersBTN(const char *event, const char *data);
+#line 17 "/Users/eo/Documents/CART461-2021/PUBLISH-SUBSCRIBE/src/PUBLISH-SUBSCRIBE.ino"
 IMU imu;
 
 /* ALWAYS RUN PARTICLE CLOUD COMMUNICATION IN SEPARATE THREAD */ 
@@ -76,7 +90,7 @@ void setup() {
   Particle.variable("accelerometer", accelerometer);
   Particle.variable("magnetometer", magnetometer);
   Particle.variable("gyrometer", gyrometer);
-  Particle.variable("yawpitchrollmagnitude", yawPitchRollMagnitude);
+  Particle.variable("yawPitchRollMagnitude", yawPitchRollMagnitude);
 
   /* PARTICLE PUBLISH 'n' SUBSCRIBE ARE MULTICAST OPERATIONS - FULLY CONNECTED 
     SIMPLY SUBSCRIBE TO A KNOWN DATA SOURCE OR PUBLISH DATA AS SOURCE

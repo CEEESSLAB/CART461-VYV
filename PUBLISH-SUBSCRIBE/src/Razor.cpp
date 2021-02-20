@@ -134,14 +134,14 @@ void IMU::loop() {
       Drift_correction();
       Euler_angles();
       
-      if (output_stream_on || output_single_on) output_angles();
+      //if (output_stream_on || output_single_on) output_angles();
     }
     else  // Output sensor values
     {      
-      if (output_stream_on || output_single_on) output_sensors();
+      //if (output_stream_on || output_single_on) output_sensors();
     }
     
-    output_single_on = true;
+    //output_single_on = true;
     
 #if DEBUG__PRINT_LOOP_TIME == true
     Serial.print("loop time (ms) = ");
@@ -160,7 +160,7 @@ IMU::IMU()
         , timestamp(0)
         , timestamp_old(0)
         , G_Dt(0)
-        , output_stream_on(false)
+        , output_stream_on(true)
         , output_single_on(true)
         , curr_calibration_sensor(0)
         , reset_calibration_session_flag(true)
