@@ -22,7 +22,7 @@ IMU imu;
 #include "google-maps-device-locator.h"
 GoogleMapsDeviceLocator locator;
 
-/* JSON PARSER */
+/* JSON PARSER  https://github.com/rickkas7/JsonParserGeneratorRK */
 #include "JsonParserGeneratorRK.h"
 
 /* ALWAYS RUN PARTICLE CLOUD COMMUNICATION IN SEPARATE THREAD */ 
@@ -147,13 +147,11 @@ void georeversed(const char *event, const char *data) {
  * Mustache allows you to do simple processing of JSON data both in the request data going out
  * and response data coming back. It's a logic-less template system so you're not actually 
  * writing code, but you can do useful and powerful text transformations.
- * https://rickkas7.github.io/mustache/ https://mustache.github.io/mustache.5.html 
+ * https://rickkas7.github.io/mustache/ https://rickkas7.github.io/jsonparser/
  * https://docs.particle.io/reference/device-cloud/webhooks/#variable-substitution 
- * https://github.com/rickkas7/particle-webhooks
- * https://github.com/particle-iot/docs/blob/master/src/content/reference/device-cloud/webhooks.md
  */
 
-  // JSON PARSER: https://github.com/rickkas7/JsonParserGeneratorRK
+  // JSON PARSER:
   JsonParserStatic<256, 20> georevdata;
   georevdata.clear();
   /* RETRIEVE *data JSON PARSER georevdata - check if valid JSON */
@@ -164,7 +162,7 @@ void georeversed(const char *event, const char *data) {
     Serial.println( georevdata.getBuffer() );
   }
 
-  /* FLUENT PARSING OF JSON DATA https://rickkas7.github.io/jsonparser/ */
+  /* FLUENT PARSING OF JSON DATA  */
   String status = georevdata.getReference().key("status").valueString();
   if (status == "OK") {
     /* PARSE JSON */
