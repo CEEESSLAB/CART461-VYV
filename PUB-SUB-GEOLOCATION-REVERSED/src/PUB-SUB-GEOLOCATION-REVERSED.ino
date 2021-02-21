@@ -22,6 +22,9 @@ IMU imu;
 #include "google-maps-device-locator.h"
 GoogleMapsDeviceLocator locator;
 
+/* JSON PARSER */
+#include "JsonParserGeneratorRK.h"
+
 /* ALWAYS RUN PARTICLE CLOUD COMMUNICATION IN SEPARATE THREAD */ 
 SYSTEM_THREAD(ENABLED);
 
@@ -90,6 +93,9 @@ void setup() {
   //locator.withLocatePeriodic(32) // GEOLOCATE EVERY 32 SECONDS
   //locator.withSubscribe(locationCallback); // REQUIRES AN EVENT
 
+  /* GEOLOCATION REVERSE LOOKUP IE LAT-LONG -> PHYSICAL ADDRESS */
+  Particle.subscribe("hook-response/geolocation-reversed", georeversed);
+
   Serial.begin(57600);
   //while( !Serial.isConnected() ) // wait for Host to open serial port
   waitFor(Serial.isConnected, 5000); 
@@ -136,6 +142,39 @@ void loop() {
   }
 }
 
+void georeversed(const char *event, const char *data) {
+/* 
+ * Mustache allows you to do simple processing of JSON data both in the request data going out
+ * and response data coming back. It's a logic-less template system so you're not actually 
+ * writing code, but you can do useful and powerful text transformations.
+ * https://rickkas7.github.io/mustache/ https://mustache.github.io/mustache.5.html 
+ * https://docs.particle.io/reference/device-cloud/webhooks/#variable-substitution 
+ * https://github.com/rickkas7/particle-webhooks
+ * https://github.com/particle-iot/docs/blob/master/src/content/reference/device-cloud/webhooks.md
+ */
+
+  // JSON PARSER: https://github.com/rickkas7/JsonParserGeneratorRK
+  JsonParserStatic<256, 20> georevdata;
+  georevdata.clear();
+  /* RETRIEVE *data JSON PARSER georevdata - check if valid JSON */
+  georevdata.addString(data);
+	if (!georevdata.parse()) {
+		Serial.println( " JSON RESPONSE NOT FORMATTED CORRECTLY " );
+	} else {
+    Serial.println( georevdata.getBuffer() );
+  }
+
+  /* FLUENT PARSING OF JSON DATA https://rickkas7.github.io/jsonparser/ */
+  String status = georevdata.getReference().key("status").valueString();
+  if (status == "OK") {
+    /* PARSE JSON */
+    String code = georevdata.getReference().key("results").index(0).valueString();
+    Serial.println( code );
+    String arron = georevdata.getReference().key("results").index(1).valueString();
+    Serial.println( arron );
+  }
+}
+
 /* PARTICLE CLOUD GOOGLE GEOLATION: LAT, LONG AND ACCRUACY - CALLBACK */
 void locationCallback(float lat, float lon, float accu) {
   // Handle the returned location data for the device. This method is passed three arguments:
@@ -145,6 +184,13 @@ void locationCallback(float lat, float lon, float accu) {
   latitude = lat;
   longitude = lon;
   accuracy = accu;
+
+  /* GEOLOCATION REVERSE LOOKUP */ 
+  /* https://developers.google.com/maps/documentation/geocoding/start */
+  snprintf(buffer, sizeof(buffer), "{\"lat\":%f,\"lon\":%f}",lat,lon);
+  //snprintf(geo,sizeof(geo), "{\"lat\":%f,\"lon\":%f,\"key\":\"AIzaSyCxAVeQyknC0j9gz6K789agPPefDkaRidI\"}", lat, lon);
+  /* USE GOOGLE WEBHOOK FOR REVERSE GEOLOCATION */
+  if( Particle.publish("geolocation-reversed", buffer, PRIVATE) ) Serial.println("GEO-REVERSED");
 
   digitalWrite(R_LED, LOW);
   digitalWrite(B_LED, HIGH);
