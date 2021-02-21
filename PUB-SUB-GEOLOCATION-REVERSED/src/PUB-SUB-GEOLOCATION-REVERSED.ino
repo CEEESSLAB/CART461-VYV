@@ -186,7 +186,6 @@ void locationCallback(float lat, float lon, float accu) {
   /* GEOLOCATION REVERSE LOOKUP */ 
   /* https://developers.google.com/maps/documentation/geocoding/start */
   snprintf(buffer, sizeof(buffer), "{\"lat\":%f,\"lon\":%f}",lat,lon);
-  //snprintf(geo,sizeof(geo), "{\"lat\":%f,\"lon\":%f,\"key\":\"AIzaSyCxAVeQyknC0j9gz6K789agPPefDkaRidI\"}", lat, lon);
   /* USE GOOGLE WEBHOOK FOR REVERSE GEOLOCATION */
   if( Particle.publish("geolocation-reversed", buffer, PRIVATE) ) Serial.println("GEO-REVERSED");
 
