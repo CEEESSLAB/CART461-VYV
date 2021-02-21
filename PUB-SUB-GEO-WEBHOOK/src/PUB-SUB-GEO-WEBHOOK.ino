@@ -2,7 +2,10 @@
  * Project PUB-SUB GEOLOACTION 
  * Description: This example will illustrate how to fully exploit the Particle 
  * Cloud: PUBLISH, SUBSCRIBE, FUNCTIONS and VARIABLES and utilise Particle 
- * Google GEOLOCATION INTEGRATION (LONGITUDE, LATITUDE, ACCURACY). 
+ * Google GEOLOCATION INTEGRATION (LONGITUDE, LATITUDE, ACCURACY). We will
+ * Publish to Particle Cloud and utilise Particle Cloud Webhook to transmit data to 
+ * a remote server outside Particle Cloud Platform.  
+ *  
  * 
  * We will continue handle subscription data received via a Particle.subscription() 
  * handler. In order to illustrate the approach, this example program will make of 
@@ -33,7 +36,6 @@ GoogleMapsDeviceLocator locator;
 //  http_request_t request;  
 //  http_response_t response;
 
-
 /* ALWAYS RUN PARTICLE CLOUD COMMUNICATION IN SEPARATE THREAD */ 
 SYSTEM_THREAD(ENABLED);
 
@@ -56,7 +58,7 @@ float * magnetom;
 float * gyro;
 float yaw, pitch, roll, magnitude, latitude, longitude, accuracy;
 
-char buffer[256];
+char buffer[512];
 char * _stateofrgbled;
 
 /* PARTICLE CLOUD API VARIABLES */
@@ -163,15 +165,27 @@ void locationCallback(float lat, float lon, float accu) {
   digitalWrite(B_LED, HIGH);
   delay(1000);
   
-  /* 
-    PREPARE DATA TO BE PUBLISHED ONTO PARTICLE CLOUD - USE snprintf() to create formatted string 
-    STRING FORMAT (COMMA DELIMITED):
-    latitude,longitude,accuracy,accel[0],accel[1],accel[2],magnetom[0],magnetom[1],magnetom[2],gyro[0],gyro[1],gyro[2],yaw, pitch, roll, heading,
-  */
+  /* IN THIS PROGRAM - OUR INTENTION IS TO PUBLISH DATA TO THE PARTICLE CLOUD PLATFORM */
+  /* PREPARE DATA TO BE PUBLISHED ONTO PARTICLE CLOUD */
   snprintf(buffer, sizeof(buffer), "%.07f,%.07f,%.07f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f", \
   lat, lon, accu, accel[0],accel[1],accel[2],magnetom[0],magnetom[1],magnetom[2],gyro[0],gyro[1],gyro[2],yaw,pitch,roll,magnitude);
 
   if( Particle.publish("cslab-proline-imu-geo", buffer) ) Serial.println ("cslab-proline-imu-geo published");
+
+  /* ADDITIONALLY, WE WANT TO PUBLISH DATA TO A SERVER NOT WITHIN THE PARTICLE CLOUD PLATFORM */
+  /* HERE WE CAN PREPARE THE DATA TO TRANSMIT VIA A WEBHOOK (HTTPS SERVER) USING A STRING FORMATTED AS JSON OBJECT */
+  snprintf(buffer, sizeof(buffer),"{\"device-name\":\"%s\",\"lat\":%.07f,\"lon\":%.07f,\"accu\":%.07f,\"accel-x\":%.02f,\"accel-y\":%.02f,\
+  \"accel-z\":%.02f,\"magnetom-x\":%.02f,\"magnetom-y\":%.02f,\"magnetom-z\":%.02f,\"gyro-x\":%.02f,\"gyro-y\":%.02f,\
+  \"gyro-z\":%.02f,\"yaw\":%.02f,\"pitch\":%.02f,\"roll\":%.02f,\"magnitude\":%.02f}",\
+  "cslab-proline",lat,lon,accuracy,accel[0],accel[1],accel[2],magnetom[0],magnetom[1],magnetom[2],gyro[0],gyro[1],gyro[2],\
+  yaw,pitch,roll,magnitude );
+  /* ^^^ NASTY AND ERROR PRONE ^^^ */
+    
+  Serial.println(buffer);
+    
+  /* TRANSMIT DATA TO A HTTPS SERVER OUT OF PARTICLE CLOUD PLATFORM - USE A WEBHOOK */ 
+  if ( Particle.publish("cslabprolinetohttps", buffer, PRIVATE) ) Serial.println ("cslab-proline-imu-geo published to https server");
+
   digitalWrite(B_LED, LOW);
   digitalWrite(G_LED, HIGH);
   delay(1002);
