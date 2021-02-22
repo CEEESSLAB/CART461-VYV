@@ -2,9 +2,9 @@
  * Project PUB-SUB GEOLOACTION 
  * Description: This example will illustrate how to fully exploit the Particle 
  * Cloud: PUBLISH, SUBSCRIBE, FUNCTIONS and VARIABLES and utilise Particle 
- * Google GEOLOCATION INTEGRATION (LONGITUDE, LATITUDE, ACCURACY). We will
+ * Google GEOLOCATION INTEGRATION (LONGITUDE, LATITUDE, ACCURACY). We will also
  * Publish to Particle Cloud and utilise Particle Cloud Webhook to transmit data to 
- * a remote server outside Particle Cloud Platform.  
+ * a Firebase JSON Object database (NoSQL).  
  *  
  * 
  * We will continue handle subscription data received via a Particle.subscription() 
@@ -27,17 +27,6 @@ GoogleMapsDeviceLocator locator;
 
 /* JSON PARSER AND GENERATOR */
 #include "JsonParserGeneratorRK.h"
-
-/* PARTICLE CLOUD HTTP CLIENT */
-// #include "HttpClient.h"
-//  HttpClient http;  
-//  http_header_t headers[] = {  
-//     { "Content-Type", "application/json" },  
-//     { NULL, NULL }   // { NULL, NULL, ... }
-//  };  
- 
-//  http_request_t request;  
-//  http_response_t response;
 
 /* ALWAYS RUN PARTICLE CLOUD COMMUNICATION IN SEPARATE THREAD */ 
 SYSTEM_THREAD(ENABLED);
@@ -62,29 +51,8 @@ float * gyro;
 float yaw, pitch, roll, magnitude, latitude, longitude, accuracy;
 
 char buffer[256];
-char * _stateofrgbled;
 
 /* PARTICLE CLOUD API VARIABLES */
-String accelerometer() {
-  snprintf(buffer, sizeof(buffer), "%.02f,%.02f,%.02f", accel[0], accel[1], accel[2]);
-  return buffer;
-}
-
-String magnetometer() {
-  snprintf(buffer, sizeof(buffer), "%.02f,%.02f,%.02f", magnetom[0],magnetom[1],magnetom[2]);
-  return buffer;
-}
-
-String gyrometer() {
-  snprintf(buffer, sizeof(buffer), "%.02f,%.02f,%.02f", gyro[0],gyro[1],gyro[2]);
-  return buffer;
-}
-
-String yawPitchRollMagnitude() {
-  snprintf(buffer, sizeof(buffer), "%.02f,%.02f,%.02f,%.02f", yaw, pitch, roll, magnitude);
-  return buffer;
-}
-
 String geolocation() {
   snprintf(buffer, sizeof(buffer), "%.07f,%.07f,%.07f", latitude, longitude, accuracy);
   return buffer;
@@ -92,11 +60,6 @@ String geolocation() {
 
 void setup() {
   /* PARTICLE CLOUD INTENTIONS ALWAYS DECLARED AND INIT'ED IN VOID SETUP */
-  Particle.variable("location", "ME @ MTL", STRING);
-  Particle.variable("accelerometer", accelerometer);
-  Particle.variable("magnetometer", magnetometer);
-  Particle.variable("gyrometer", gyrometer);
-  Particle.variable("yawpitchrollmagnitude", yawPitchRollMagnitude);
   Particle.variable("geolocation", geolocation);
 
   /* SUBSCRIBE TO AGGREGATED STATE OF IMU */
@@ -172,24 +135,15 @@ void locationCallback(float lat, float lon, float accu) {
   /* PREPARE DATA TO BE PUBLISHED ONTO PARTICLE CLOUD */
   snprintf(buffer, sizeof(buffer), "%.07f,%.07f,%.07f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f", \
   lat, lon, accu, accel[0],accel[1],accel[2],magnetom[0],magnetom[1],magnetom[2],gyro[0],gyro[1],gyro[2],yaw,pitch,roll,magnitude);
+  //Serial.println(buffer);
+  if( Particle.publish("cslab-proline-imu-geo", buffer) ) { /* DO SOMETHING */ }
 
-  if( Particle.publish("cslab-proline-imu-geo", buffer) ) Serial.println ("cslab-proline-imu-geo published");
-
-  /* ADDITIONALLY, WE WANT TO PUBLISH DATA TO A SERVER NOT WITHIN THE PARTICLE CLOUD PLATFORM */
-  /* HERE WE CAN PREPARE THE DATA TO TRANSMIT VIA A WEBHOOK (HTTPS SERVER) USING A STRING FORMATTED AS JSON OBJECT */
-  // snprintf(buffer, sizeof(buffer),"{\"device-name\":\"%s\",\"lat\":%.07f,\"lon\":%.07f,\"accu\":%.07f,\"accel-x\":%.02f,\"accel-y\":%.02f,\
-  // \"accel-z\":%.02f,\"magnetom-x\":%.02f,\"magnetom-y\":%.02f,\"magnetom-z\":%.02f,\"gyro-x\":%.02f,\"gyro-y\":%.02f,\
-  // \"gyro-z\":%.02f,\"yaw\":%.02f,\"pitch\":%.02f,\"roll\":%.02f,\"magnitude\":%.02f}",\
-  // "cslab-proline",lat,lon,accuracy,accel[0],accel[1],accel[2],magnetom[0],magnetom[1],magnetom[2],gyro[0],gyro[1],gyro[2],\
-  // yaw,pitch,roll,magnitude );
-  /* ^^^ NASTY AND ERROR PRONE ^^^ */
-
-/* ALTERNATIVE TO snprinf(). JsonWriterStatic creates a buffer to hold up to 512 bytes of 
-  JSON data (good for Particle.publish) */
+  /* ADDITIONALLY, WE WILL BACKUP ALL DATA TO FIREBASE JSON OBJECT DATABASE */
   JsonWriterStatic<512> jw;
 	{
 		JsonWriterAutoObject obj(&jw);
-		jw.insertKeyValue("device-name", "cslab-proline");
+    jw.insertKeyValue("sensor", "9DOF-IMU");
+		jw.insertKeyValue("deviceName", "cslab-phosphatidylserine");
 		jw.insertKeyValue("lat", lat);
     jw.insertKeyValue("lon", lon);
     jw.insertKeyValue("accu", accu);
@@ -207,11 +161,10 @@ void locationCallback(float lat, float lon, float accu) {
 		jw.insertKeyValue("roll", roll);
 		jw.insertKeyValue("magnitude", magnitude);
 	}
-
-  Serial.println(jw.getBuffer());
+  //Serial.println(jw.getBuffer());
     
   /* TRANSMIT DATA TO A HTTPS SERVER OUT OF PARTICLE CLOUD PLATFORM - USE A WEBHOOK */ 
-  if ( Particle.publish("cslabprolinetohttps", jw.getBuffer()) ) Serial.println ("cslab-proline-imu-geo published to https server");
+  if ( Particle.publish("cslabfirebase-imu-device[x]", jw.getBuffer()) ) { /* DO SOMETHING */ }
 
   digitalWrite(B_LED, LOW);
   digitalWrite(G_LED, HIGH);
