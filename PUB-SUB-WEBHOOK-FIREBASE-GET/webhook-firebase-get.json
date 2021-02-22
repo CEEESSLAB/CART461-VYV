@@ -1,0 +1,10 @@
+{
+    "event": "cslabfirebase-get",
+    "url": "https://cart461-vyv-default-rtdb.firebaseio.com/{{sensor}}.json",
+    "requestType": "GET",
+    "query": {
+    	"auth":"zipzap"
+    },
+    "mydevices": true,
+    "noDefaults": true
+}
