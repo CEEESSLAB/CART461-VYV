@@ -28,6 +28,6 @@
         "deviceid": "{{PARTICLE_DEVICE_ID}}"
     },
     "query": {
-        "auth": "WjvQIUI706ifnNMWA8i54sgYoGBkl5kZJ3xcmFnl"
+        "auth": "zipzapandapparentlyIwillchangethesecret"
     }
 }
