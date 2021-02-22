@@ -10,6 +10,8 @@
  * We will continue handle subscription data received via a Particle.subscription() 
  * handler. In order to illustrate the approach, this example program will make of 
  * a 9DoF (IMU - AHRS).
+ * 
+ * Firebase: https://firebase.google.com/docs/database/rest/structure-data
  * Author: slab
  * Date: 18022021
  ********************************************************************************/
