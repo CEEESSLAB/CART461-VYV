@@ -2,11 +2,10 @@
 //       THIS IS A GENERATED FILE - DO NOT EDIT       //
 /******************************************************/
 
-#line 1 "/Users/eo/Documents/CART461-2021/PUB-OSC-MAX-LAN/src/PUB-OSC-MAX-LAN.ino"
+#line 1 "/Users/eo/Documents/CART461-2021/PUB-UDP-ARGON-ARGON/src/PUB-UDP-ARGON-ARGON.ino"
 /*
- * Project ARGON -> MAX VIA SIMPLE OSC (OPEN SOUND CONTROL)
- * Description: Capture IMU & GEOLOCATION and transmit to 
- * MAX.
+ * Project ARGON <-> ARGON VIA UDP (USER DATAGRAMS PROTOCOL)
+ * Description: Communication between ARGONs over UDP.
  */
 
 #include <Particle.h>
@@ -18,10 +17,10 @@ void disconnectFromParticleCloud();
 void connectToLAN();
 void setup();
 void loop();
-void oooesscee();
+void uuudeepee();
 void dof();
 void locationCallback(float lat, float lon, float accu);
-#line 11 "/Users/eo/Documents/CART461-2021/PUB-OSC-MAX-LAN/src/PUB-OSC-MAX-LAN.ino"
+#line 10 "/Users/eo/Documents/CART461-2021/PUB-UDP-ARGON-ARGON/src/PUB-UDP-ARGON-ARGON.ino"
 SYSTEM_THREAD(ENABLED);
 /* CONTROL WiFi & INTERNET: AUTOMATIC, SEMI_AUTOMATIC, MANUAL */
 SYSTEM_MODE(SEMI_AUTOMATIC);
@@ -41,20 +40,20 @@ IMU imu;
 /* SIMPLE-OSC USES UDP AS TRANSPORT LAYER */
 UDP Udp;
 
-IPAddress argonIP;
-char argonIPAddress[16];
+IPAddress myArgonIP;
 /* EXPLICIT REMOTE ADDRESS DECLARATION IF IS KNOWN - 
  * REMOTE ADDRESS CAN ALSO BE RETRIEVED FROM RECEIVED 
- * OSC/UDP PACKET  */
-IPAddress remoteIP(10, 0, 1, 5);
+ * udp.remoteIP() in received PACKET  */
+static uint8_t argons[4][4] = { 
+  { 10, 0, 1, 5 },
+  { 10, 0, 1, 6 },
+  { 10, 0, 1, 7 },
+  { 10, 0, 1, 8 }
+};
+
 /* PORTS FOR INCOMING & OUTGOING DATA */
 unsigned int outPort = 8000;
 unsigned int inPort = 8001;
-
-/* OSC CALLBACK FORWARD DECLARATIONS - INCOMING OSC ROUTES */
-void start(OSCMessage &inMessage);
-void stop(OSCMessage &inMessage);
-void led(OSCMessage &inMessage);
 
 /* ONBOARD LED = DEBUG LED */
 #define DEBUG_LED D7 // SMALL BLUE LED NEXT USB CONNECTOR (RIGHT OF USB)
@@ -132,13 +131,13 @@ void setup() {
 }
 
 void loop() {
-  /* CHECK IF THERE IS SOME DATA IN UDP FORMAT */
-  oooesscee();
+  /* CHECK FOR UDP DATA */
+  uuudeepee();
 
   /* IMU RUN @ 50Hz */
   imu.loop();
 
-  /* TRANSMIT OSC PACKET @ 50Hz */
+  /* TRANSMIT UDP PACKET @ 50Hz */
   if( millis() - cTime > 20) {
     dof();
     cTime = millis();
@@ -159,27 +158,8 @@ void loop() {
   }
 }
 
-void start(OSCMessage &inMessage) {
-    Serial.println("START");
-    Serial.println(inMessage.getInt(0));
-}
-
-void stop(OSCMessage &inMessage) {
-    Serial.println("STOP");
-    Serial.println(inMessage.getInt(0));
-}
-
-void led(OSCMessage &inMessage) {
-    Serial.println("LED");
-    Serial.print(inMessage.getInt(0));
-    Serial.print(" : ");
-    Serial.print(inMessage.getInt(1));
-    Serial.print(" : ");
-    Serial.println(inMessage.getInt(2));
-}
-
-/* USES BUFFERED UDP CLIENT */
-void oooesscee() {
+/* UDP */
+void uuudeepee() {
 
   int size = 0;
   OSCMessage inMessage;
@@ -187,12 +167,6 @@ void oooesscee() {
     {
         while (size--){
             inMessage.fill(Udp.read());
-        }
-        
-        if( inMessage.parse() ) {
-            inMessage.route("/start", start);
-            inMessage.route("/stop", stop);
-            inMessage.route("/led", led);
         }
     }
 }
@@ -224,20 +198,16 @@ void dof() {
   outMessage.addFloat(pitch);
   outMessage.addFloat(roll);
   outMessage.addFloat(magnitude);
-  outMessage.send( Udp, remoteIP, outPort );
+  outMessage.send( Udp, argons[0], outPort );
 }
 
-/* PARTICLE CLOUD GOOGLE GEOLATION: LAT, LONG AND ACCRUACY - CALLBACK */
+/* PARTICLE CLOUD GOOGLE GEOLATION: LAT, LONG AND ACCURACY - CALLBACK */
 void locationCallback(float lat, float lon, float accu) {
 
   disconnectFromParticleCloud();
-
-  OSCMessage outMessage("/GEOLOC");
-  //outMessage.addFloat(-3.14);
-  outMessage.addFloat(lat);
-  outMessage.addFloat(lon);
-  outMessage.addFloat(accu);
-  outMessage.send( Udp, remoteIP, outPort );
+  char _buffer[45];
+  sprintf(_buffer, "%.7f.%.7f.%.7f", lat, lon, accu);
+  Serial.println(_buffer);
 
   digitalWrite(R_LED, LOW);
   digitalWrite(B_LED, HIGH);

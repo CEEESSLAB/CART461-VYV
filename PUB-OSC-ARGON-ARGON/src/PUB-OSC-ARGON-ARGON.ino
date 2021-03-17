@@ -34,14 +34,13 @@ char argonIPAddress[16];
  * REMOTE ADDRESS CAN ALSO BE RETRIEVED FROM RECEIVED 
  * OSC/UDP PACKET  */
 IPAddress remoteIP(10, 0, 1, 5);
+
 /* PORTS FOR INCOMING & OUTGOING DATA */
 unsigned int outPort = 8000;
 unsigned int inPort = 8001;
 
 /* OSC CALLBACK FORWARD DECLARATIONS - INCOMING OSC ROUTES */
-void start(OSCMessage &inMessage);
-void stop(OSCMessage &inMessage);
-void led(OSCMessage &inMessage);
+void dofIncoming(OSCMessage &inMessage);
 
 /* ONBOARD LED = DEBUG LED */
 #define DEBUG_LED D7 // SMALL BLUE LED NEXT USB CONNECTOR (RIGHT OF USB)
@@ -146,23 +145,9 @@ void loop() {
   }
 }
 
-void start(OSCMessage &inMessage) {
-    Serial.println("START");
+void dofIncoming(OSCMessage &inMessage) {
+    Serial.println("dof incoming");
     Serial.println(inMessage.getInt(0));
-}
-
-void stop(OSCMessage &inMessage) {
-    Serial.println("STOP");
-    Serial.println(inMessage.getInt(0));
-}
-
-void led(OSCMessage &inMessage) {
-    Serial.println("LED");
-    Serial.print(inMessage.getInt(0));
-    Serial.print(" : ");
-    Serial.print(inMessage.getInt(1));
-    Serial.print(" : ");
-    Serial.println(inMessage.getInt(2));
 }
 
 /* USES BUFFERED UDP CLIENT */
@@ -177,9 +162,7 @@ void oooesscee() {
         }
         
         if( inMessage.parse() ) {
-            inMessage.route("/start", start);
-            inMessage.route("/stop", stop);
-            inMessage.route("/led", led);
+            inMessage.route("/9DOF", dofIncoming);
         }
     }
 }
