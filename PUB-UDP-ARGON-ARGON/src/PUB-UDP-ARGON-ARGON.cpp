@@ -1,3 +1,8 @@
+/******************************************************/
+//       THIS IS A GENERATED FILE - DO NOT EDIT       //
+/******************************************************/
+
+#line 1 "/Users/eo/Documents/CART461-2021/PUB-UDP-ARGON-ARGON/src/PUB-UDP-ARGON-ARGON.ino"
 /*
  * Project ARGON <-> ARGON VIA UDP (USER DATAGRAMS PROTOCOL)
  * Description: UDP does not guarantee that messages are always delivered, 
@@ -15,6 +20,15 @@
 #include <Particle.h>
 #include <Wire.h>
 #include <vector>
+void connectToParticleCloud();
+void disconnectFromParticleCloud();
+void connectToLAN();
+void setup();
+void loop();
+void uuudeepee();
+void dof();
+void locationCallback(float lat, float lon, float accu);
+#line 18 "/Users/eo/Documents/CART461-2021/PUB-UDP-ARGON-ARGON/src/PUB-UDP-ARGON-ARGON.ino"
 using namespace std;
 
 /* PARTICLE CLOUD COMMUNICATION IN SEPARATE THREAD */
