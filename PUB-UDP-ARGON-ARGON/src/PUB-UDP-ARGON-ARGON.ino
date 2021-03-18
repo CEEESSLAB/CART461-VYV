@@ -9,7 +9,6 @@
  * Multicast is group communication where data transmission is addressed to a 
  * group of destination computers simultaneously. Multicast can be one-to-many
  * or many-to-many distribution.
- * https://community.particle.io/t/multicast-udp-tutorial/19900
  */
 
 #include <Particle.h>
@@ -38,12 +37,13 @@ IPAddress myArgonIP;
 /* EXPLICIT REMOTE ADDRESS DECLARATION IF IS KNOWN - 
  * REMOTE ADDRESS CAN ALSO BE RETRIEVED FROM RECEIVED 
  * udp.remoteIP() in received PACKET  */
-static uint8_t argons[5][4] = { 
+static uint8_t argons[6][4] = { 
   { 10, 0, 1, 5 },
   { 10, 0, 1, 6 },
   { 10, 0, 1, 7 },
   { 10, 0, 1, 8 },
-  { 224, 0, 1, 32 } 
+  { 224, 0, 1, 32 }, // MULTICAST GROUP #1
+  { 224, 0, 1, 16 }  // MULTICAST GROUP #2
 };
 #define SELFTEST 0
 /* PORTS FOR INCOMING & OUTGOING DATA */
@@ -235,7 +235,7 @@ void locationCallback(float lat, float lon, float accu) {
   if(SELFTEST)
     udp.beginPacket(myArgonIP, LISTEN);
   else
-    udp.beginPacket(argons[4], LISTEN);
+    udp.beginPacket(argons[5], LISTEN);
       udp.write( _buffer );
     udp.endPacket();
 }

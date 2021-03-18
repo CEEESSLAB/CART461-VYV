@@ -14,7 +14,6 @@
  * Multicast is group communication where data transmission is addressed to a 
  * group of destination computers simultaneously. Multicast can be one-to-many
  * or many-to-many distribution.
- * https://community.particle.io/t/multicast-udp-tutorial/19900
  */
 
 #include <Particle.h>
@@ -28,7 +27,7 @@ void loop();
 void uuudeepee();
 void dof();
 void locationCallback(float lat, float lon, float accu);
-#line 18 "/Users/eo/Documents/CART461-2021/PUB-UDP-ARGON-ARGON/src/PUB-UDP-ARGON-ARGON.ino"
+#line 17 "/Users/eo/Documents/CART461-2021/PUB-UDP-ARGON-ARGON/src/PUB-UDP-ARGON-ARGON.ino"
 using namespace std;
 
 /* PARTICLE CLOUD COMMUNICATION IN SEPARATE THREAD */
@@ -52,12 +51,13 @@ IPAddress myArgonIP;
 /* EXPLICIT REMOTE ADDRESS DECLARATION IF IS KNOWN - 
  * REMOTE ADDRESS CAN ALSO BE RETRIEVED FROM RECEIVED 
  * udp.remoteIP() in received PACKET  */
-static uint8_t argons[5][4] = { 
+static uint8_t argons[6][4] = { 
   { 10, 0, 1, 5 },
   { 10, 0, 1, 6 },
   { 10, 0, 1, 7 },
   { 10, 0, 1, 8 },
-  { 224, 0, 1, 32 } 
+  { 224, 0, 1, 32 }, // MULTICAST GROUP #1
+  { 224, 0, 1, 16 }  // MULTICAST GROUP #2
 };
 #define SELFTEST 0
 /* PORTS FOR INCOMING & OUTGOING DATA */
@@ -150,7 +150,7 @@ void loop() {
 
   /* TRANSMIT UDP PACKET @ 1Hz */
   if( millis() - cTime > 100) {
-    dof();
+    //dof();
     cTime = millis();
   }
 
