@@ -8,7 +8,11 @@
 		"extensions.ignoreRecommendations": true,
 		"cortex-debug.openocdPath": "${command:particle.getDebuggerOpenocdPath}",
 		"files.associations": {
-			"*.ino": "cpp"
+			"*.ino": "cpp",
+			"vector": "cpp",
+			"iosfwd": "cpp",
+			"iterator": "cpp",
+			"string": "cpp"
 		}
 	}
 }

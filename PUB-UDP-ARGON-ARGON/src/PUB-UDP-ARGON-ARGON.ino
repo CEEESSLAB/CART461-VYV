@@ -9,6 +9,8 @@
 
 #include <Particle.h>
 #include <Wire.h>
+#include <vector>
+using namespace std;
 
 /* PARTICLE CLOUD COMMUNICATION IN SEPARATE THREAD */
 SYSTEM_THREAD(ENABLED);
@@ -25,7 +27,7 @@ IMU imu;
 
 /* BUFFERED UDP AS TRANSPORT LAYER */
 UDP udp;
-
+vector<string> inudp;
 IPAddress myArgonIP;
 /* EXPLICIT REMOTE ADDRESS DECLARATION IF IS KNOWN - 
  * REMOTE ADDRESS CAN ALSO BE RETRIEVED FROM RECEIVED 
@@ -36,10 +38,10 @@ static uint8_t argons[4][4] = {
   { 10, 0, 1, 7 },
   { 10, 0, 1, 8 }
 };
-
+#define SELFTEST 1
 /* PORTS FOR INCOMING & OUTGOING DATA */
-unsigned int outPort = 8000;
-unsigned int inPort = 8001;
+#define OUTPORT  8000
+#define INPORT   8001
 
 /* ONBOARD LED = DEBUG LED */
 #define DEBUG_LED D7 // SMALL BLUE LED NEXT USB CONNECTOR (RIGHT OF USB)
@@ -109,7 +111,7 @@ void setup() {
   connectToLAN();
   /* START UDP SERVICE */
   if (WiFi.ready()) {
-    udp.begin(inPort);
+    udp.begin(INPORT);
   }
   
   delay(5); // Force Serial.println in void setup()
@@ -124,7 +126,7 @@ void loop() {
   imu.loop();
 
   /* TRANSMIT UDP PACKET @ 1Hz */
-  if( millis() - cTime > 1000) {
+  if( millis() - cTime > 100) {
     dof();
     cTime = millis();
   }
@@ -138,36 +140,50 @@ void loop() {
     connectToParticleCloud();
     /* REQUEST LOCATION FROM GOOGLE */
     locator.publishLocation();
-
-    digitalWrite(R_LED, HIGH);
-    delay(1000);
   }
 }
 
 /* UDP - BUFFERED UNMARSHALLING ALWAYS FOLLOWS THREE STEPS:
    a) udp.parsePacket() (UDP DATA PACKET LENGTH) > 0
-   b) udp.read() (OPTIONAL)
-   c) udp.available() (ACCESS ENTIRE PACKET)
+   b) udp.read(_rBuffer, sized) (OPTIMAL) * _or_
+   b) udp.available() (READ/ACCESS ENTIRE PACKET)
+      while(udp.available()) 
+        _rBuffer[cnt++] = udp.read()
+    MESSAGE FORMAT: ~MSG,LEN,[F,I,S],[DATA] 
 */
 void uuudeepee() {
-  int sized = udp.parsePacket();
-  char _rBuffer[sized] = { 0 };
+  int sized = -1;
+  /* IS THERE AN INCOMING UDP PACKET */
+  if ( ( sized = udp.parsePacket() ) > 0) {
 
-  if ( sized > 0) {
-    Serial.println(sized); 
-    udp.read(_rBuffer, sized);
-    //just for debug
-    for(int z = 0; z < sized; z++) Serial.print(_rBuffer[z]);
-    Serial.println();
-    // Echo back data to sender
-    udp.beginPacket(udp.remoteIP(), udp.remotePort()); //outPort
-    udp.write("TEST: ");
-    udp.write(udp.remoteIP().toString().c_str());
-    udp.write(" ");
-    udp.write( String(udp.remotePort()).c_str() );
-    udp.endPacket();
+    /* '~' == 127 MARKS BEGINNING OF MSG */
+    if(udp.read() == '~') {
+      //char _rBuffer[sized] = { 0 };
+      char * _rBuffer = new char[sized - 1];
+      udp.read(_rBuffer, sized - 1);
+      //just for debug
+      //for(int z = 0; z < sized; z++) Serial.print(_rBuffer[z]);
+      //Serial.println();
+
+      /* TOKENISE UDP PACKET */
+      char* token; 
+      vector<string> _t;
+      // Get the first token followed by the delimiter ','
+      token = strtok(_rBuffer, ",");
+
+      while (token != NULL) { 
+        _t.push_back(token);
+        // strtok() contains a static pointer to the previous passed string
+        token = strtok(NULL, ","); 
+      } 
+      inudp = _t;
+      for(int i=0; i < _t.size();i++)
+        Serial.print( _t.at(i).c_str() );
+      Serial.println();
+
+      delete _rBuffer;
+    }
   }
-  for(int z = 0; z < sized; z++) _rBuffer[z] = NULL;
 }
 
 void dof() {
@@ -182,20 +198,20 @@ void dof() {
   roll = imu.getRoll();
   magnitude = imu.getMagnitude();
 
-  char _buffer[195];
-  sprintf(_buffer, "%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f",  \
+  char _buffer[205];
+  sprintf(_buffer, "~DOF,F,13,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f",  \
           accel[0], accel[1], accel[2], \
           magnetom[0], magnetom[1], magnetom[2], \
           gyro[0], gyro[1], gyro[2], \
           yaw, pitch, roll, magnitude \
   );
   //Serial.println(_buffer);
-
-  // udp.beginPacket(argons[2], outPort);
-  //   udp.write( _buffer );
-  // udp.endPacket();
-
-
+  if(SELFTEST)
+    udp.beginPacket(myArgonIP, INPORT);
+  else
+    udp.beginPacket(argons[0], OUTPORT);
+      udp.write( _buffer );
+    udp.endPacket();
 }
 
 /* PARTICLE CLOUD GOOGLE GEOLATION: LAT, LONG AND ACCURACY - CALLBACK */
@@ -203,24 +219,14 @@ void locationCallback(float lat, float lon, float accu) {
 
   disconnectFromParticleCloud();
 
-  char _buffer[45];
-  sprintf(_buffer, "%.7f,%.7f,%.7f", lat, lon, accu);
-  Serial.println(_buffer);
+  char _buffer[54];
+  sprintf(_buffer, "~GEO,F,3,%.7f,%.7f,%.7f", lat, lon, accu);
+  //Serial.println(_buffer);
 
-  digitalWrite(R_LED, LOW);
-  digitalWrite(B_LED, HIGH);
-  delay(1000);
-  
-  digitalWrite(B_LED, LOW);
-  digitalWrite(G_LED, HIGH);
-  delay(1002);
-  digitalWrite(G_LED, LOW);
+  if(SELFTEST)
+    udp.beginPacket(myArgonIP, INPORT);
+  else
+    udp.beginPacket(argons[0], OUTPORT);
+      udp.write( _buffer );
+    udp.endPacket();
 }
-
-    // // Echo back data to sender
-    // Udp.beginPacket(ipAddress, port);
-    // Udp.write("TEST: ");
-    // Udp.write(Udp.remoteIP().toString().c_str());
-    // Udp.write(" ");
-    // Udp.write( String(Udp.remotePort()).c_str() );
-    // Udp.endPacket();
