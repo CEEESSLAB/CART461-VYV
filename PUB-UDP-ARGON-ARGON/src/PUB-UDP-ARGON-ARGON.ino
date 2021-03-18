@@ -1,6 +1,10 @@
 /*
  * Project ARGON <-> ARGON VIA UDP (USER DATAGRAMS PROTOCOL)
- * Description: Communication between ARGONs over UDP.
+ * Description: UDP does not guarantee that messages are always delivered, 
+ * or that they are delivered in the order supplied. In cases where your 
+ * application requires a reliable connection, TCPClient is the alternative.
+ * 
+ * Buffered UDP Communication.
  */
 
 #include <Particle.h>
@@ -9,7 +13,7 @@
 /* PARTICLE CLOUD COMMUNICATION IN SEPARATE THREAD */
 SYSTEM_THREAD(ENABLED);
 /* CONTROL WiFi & INTERNET: AUTOMATIC, SEMI_AUTOMATIC, MANUAL */
-SYSTEM_MODE(SEMI_AUTOMATIC);
+SYSTEM_MODE(MANUAL);
 
 /* PARTICLE CLOUD GOOGLE MAPS INTEGRATION */
 #include "google-maps-device-locator.h"
@@ -19,12 +23,8 @@ GoogleMapsDeviceLocator locator;
 #include "Razor.h"
 IMU imu;
 
-/* IF USING MAX-MSP - THEN THIS */
-#include "simple-OSC.h"
-#include "math.h"
-
-/* SIMPLE-OSC USES UDP AS TRANSPORT LAYER */
-UDP Udp;
+/* BUFFERED UDP AS TRANSPORT LAYER */
+UDP udp;
 
 IPAddress myArgonIP;
 /* EXPLICIT REMOTE ADDRESS DECLARATION IF IS KNOWN - 
@@ -83,9 +83,7 @@ void connectToLAN() {
   delay(5);
  /* GET HOST (ARGON) ASSIGNED IP */
   Serial.print("ARGON IP (DHCP): ");
-  //argonIP = WiFi.localIP();
-  //sprintf(argonIPAddress, "%d.%d.%d.%d", argonIP[0], argonIP[1], argonIP[2], argonIP[3]);
-  Serial.println(WiFi.localIP());
+  Serial.println(myArgonIP = WiFi.localIP());
 }
 
 void setup() {
@@ -109,9 +107,11 @@ void setup() {
   pinMode(B_TN, INPUT_PULLUP); // NO RESISTOR
 
   connectToLAN();
-  /* START UDP SERVICE - USED BY SIMPLE-OSC */
-  Udp.begin(inPort);
-
+  /* START UDP SERVICE */
+  if (WiFi.ready()) {
+    udp.begin(inPort);
+  }
+  
   delay(5); // Force Serial.println in void setup()
   Serial.println("Completed void setup");
 }
@@ -123,8 +123,8 @@ void loop() {
   /* IMU RUN @ 50Hz */
   imu.loop();
 
-  /* TRANSMIT UDP PACKET @ 50Hz */
-  if( millis() - cTime > 20) {
+  /* TRANSMIT UDP PACKET @ 1Hz */
+  if( millis() - cTime > 1000) {
     dof();
     cTime = millis();
   }
@@ -144,23 +144,36 @@ void loop() {
   }
 }
 
-/* UDP */
+/* UDP - BUFFERED UNMARSHALLING ALWAYS FOLLOWS THREE STEPS:
+   a) udp.parsePacket() (UDP DATA PACKET LENGTH) > 0
+   b) udp.read() (OPTIONAL)
+   c) udp.available() (ACCESS ENTIRE PACKET)
+*/
 void uuudeepee() {
+  int sized = udp.parsePacket();
+  char _rBuffer[sized] = { 0 };
 
-  int size = 0;
-  OSCMessage inMessage;
-    if ( ( size = Udp.parsePacket() ) > 0)
-    {
-        while (size--){
-            inMessage.fill(Udp.read());
-        }
-    }
+  if ( sized > 0) {
+    Serial.println(sized); 
+    udp.read(_rBuffer, sized);
+    //just for debug
+    for(int z = 0; z < sized; z++) Serial.print(_rBuffer[z]);
+    Serial.println();
+    // Echo back data to sender
+    udp.beginPacket(udp.remoteIP(), udp.remotePort()); //outPort
+    udp.write("TEST: ");
+    udp.write(udp.remoteIP().toString().c_str());
+    udp.write(" ");
+    udp.write( String(udp.remotePort()).c_str() );
+    udp.endPacket();
+  }
+  for(int z = 0; z < sized; z++) _rBuffer[z] = NULL;
 }
 
 void dof() {
 
-  /* UPDATE IMU READINGS: ACCELERO[3], MAGENTO[3], GYRO[3], YAW, PITCH, ROLL, HEADING */
-  /* ACCESS UPDATED IMU STATE */
+  /* UPDATE IMU READINGS: ACCELERO[3], MAGENTO[3], GYRO[3], 
+     YAW, PITCH, ROLL, HEADING */
   accel = imu.getAccelerometer();  
   magnetom = imu.getMagnetometer();
   gyro = imu.getGyrometer();
@@ -169,28 +182,27 @@ void dof() {
   roll = imu.getRoll();
   magnitude = imu.getMagnitude();
 
-  OSCMessage outMessage("/9DOF");
-  //outMessage.addFloat(-3.14);
-  outMessage.addFloat(accel[0]);
-  outMessage.addFloat(accel[1]);
-  outMessage.addFloat(accel[2]);
-  outMessage.addFloat(magnetom[0]);
-  outMessage.addFloat(magnetom[1]);
-  outMessage.addFloat(magnetom[2]);
-  outMessage.addFloat(gyro[0]);
-  outMessage.addFloat(gyro[1]);
-  outMessage.addFloat(gyro[2]);
-  outMessage.addFloat(yaw);
-  outMessage.addFloat(pitch);
-  outMessage.addFloat(roll);
-  outMessage.addFloat(magnitude);
-  outMessage.send( Udp, argons[0], outPort );
+  char _buffer[195];
+  sprintf(_buffer, "%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f",  \
+          accel[0], accel[1], accel[2], \
+          magnetom[0], magnetom[1], magnetom[2], \
+          gyro[0], gyro[1], gyro[2], \
+          yaw, pitch, roll, magnitude \
+  );
+  //Serial.println(_buffer);
+
+  // udp.beginPacket(argons[2], outPort);
+  //   udp.write( _buffer );
+  // udp.endPacket();
+
+
 }
 
 /* PARTICLE CLOUD GOOGLE GEOLATION: LAT, LONG AND ACCURACY - CALLBACK */
 void locationCallback(float lat, float lon, float accu) {
 
   disconnectFromParticleCloud();
+
   char _buffer[45];
   sprintf(_buffer, "%.7f,%.7f,%.7f", lat, lon, accu);
   Serial.println(_buffer);
@@ -204,3 +216,11 @@ void locationCallback(float lat, float lon, float accu) {
   delay(1002);
   digitalWrite(G_LED, LOW);
 }
+
+    // // Echo back data to sender
+    // Udp.beginPacket(ipAddress, port);
+    // Udp.write("TEST: ");
+    // Udp.write(Udp.remoteIP().toString().c_str());
+    // Udp.write(" ");
+    // Udp.write( String(Udp.remotePort()).c_str() );
+    // Udp.endPacket();
