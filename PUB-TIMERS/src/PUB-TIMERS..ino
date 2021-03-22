@@ -1,36 +1,27 @@
 /*
  * Project PUB-SLEEP
- * Description: Options for controlling Argons during periods of inactivity.
- * System.sleep() can be used to dramatically improve the battery life of a 
- * Particle-powered project. The SystemSleepConfiguration class configures 
- * all of the sleep parameters: STOP, ULTRA_LOW_POWER and HIBERNATE. 
+ * Description:
+ * Software Timers provide a way to have timed actions in your program. FreeRTOS 
+ * provides the ability to have up to 10 Software Timers at a time with a minimum 
+ * resolution of 1 millisecond. It is common to use millis() based "timers" though 
+ * exact timing is not always possible (due to other program delays). 
  * 
- * HIBERNATE = MOST EXTREME LOW POWER MODE (MAJORITY OF SERVICES ARE OFF)
- * STOP & ULTRA_LOW_POWER = SELECTED SERVICES ARE PRIORITSED. IN THIS DEMO, 
- * WE WILL LOOK AT CONFIG OF STOP and ULTRA_LOW_POWER. 
- *  
- * https://docs.particle.io/reference/device-os/firmware/argon/#sleep-sleep-
- * STOP MODE = ULTRA_LOW_POWER = LEAST RESTRICTIVE
+ * Timers may be started, stopped, reset within a user program or an ISR. 
+ * They may also be "disposed", removing them from the (max. 10) active timer list.
  */
 
 #include <Particle.h>
-#include <Wire.h>
-#include <vector>
-using namespace std;
 
 /* PARTICLE CLOUD COMMUNICATION IN SEPARATE THREAD */
 SYSTEM_THREAD(ENABLED);
 /* CONTROL WiFi & INTERNET: AUTOMATIC, SEMI_AUTOMATIC, MANUAL */
 SYSTEM_MODE(MANUAL);
 
-/* IMU IMPLEMENTATION */
-#include "Razor.h"
-IMU imu;
+/* TIMER DEF AND TIMER CALLBACK */
+void heregoesone();
 
-IPAddress myArgonIP;
-
-/* SLEEP ARGON SLEEP CONFIG */
-SystemSleepConfiguration config;
+/* TIMERS - SYSTEM - DECLARE UPTO 10 TIMERS */
+Timer timer_one(100, heregoesone);
 
 /* ONBOARD LED = DEBUG LED */
 #define DEBUG_LED D7 // SMALL BLUE LED NEXT USB CONNECTOR (RIGHT OF USB)
@@ -38,32 +29,6 @@ SystemSleepConfiguration config;
 #define G_LED     D5 // GREEN LED
 #define B_LED     D4 // BLUE LED
 #define B_TN      D2 // MOMENTARY BUTTON
-
-/* VARIABLES USED FOR BOTH PARTICLE CLOUD VARIABLES AND PARTICLE SUBSCRIPTION
-  - IMU ACCELERO, MAGNETO, GYRO */
-float * accel;
-float * magnetom;
-float * gyro;
-float yaw, pitch, roll, magnitude;
-
-unsigned long int cTime = -1;
-uint8_t sleepcounter = 0;
-
-/* PARTICLE CLOUD SERVICE - ONLY IF SHARING DATA WITH OTHER ARGONS */
-void connectToParticleCloud() {
-    if( !Particle.connected() ) {
-        Particle.connect();
-    }
-    waitUntil( Particle.connected );
-}
-
-/* PARTICLE CLOUD SERVICE - ONLY IF SHARING DATA WITH OTHER ARGONS */
-void disconnectFromParticleCloud() {
-    if( Particle.connected() ) {
-        Particle.disconnect();
-    }
-    waitUntil( Particle.disconnected );
-}
 
 void connectToLAN() {
   /* IF ARGON ALREADY CONFIGURED FOR SSID/ROUTER - THEN THIS */
@@ -75,7 +40,7 @@ void connectToLAN() {
   delay(5);
  /* GET HOST (ARGON) ASSIGNED IP */
   Serial.print("ARGON IP (DHCP): ");
-  Serial.println(myArgonIP = WiFi.localIP());
+  Serial.println(WiFi.localIP());
 }
 
 void setup() {
@@ -95,60 +60,21 @@ void setup() {
   pinMode(B_TN, INPUT_PULLUP); // NO RESISTOR
 
   connectToLAN();
+  timer_one.start();
   
   delay(5); // Force Serial.println in void setup()
   Serial.println("Completed void setup");
 }
 
-void loop() {
-  /* IMU RUN @ 50Hz */
-  imu.loop();
-
-  if(sleepcounter > 100) {
-    Serial.println(sleepcounter); sleepcounter = 0; 
-    config.mode(SystemSleepMode::STOP)
-    //config.mode(SystemSleepMode::ULTRA_LOW_POWER)
-    //.network(NETWORK_INTERFACE_ALL) // WAKE ON ANY NETWORK ACTIVITY (DISRUPTS SLEEP)
-    .network(NETWORK_INTERFACE_WIFI_STA, \
-    SystemSleepNetworkFlag::INACTIVE_STANDBY ) // SLEEP NETWORK READY UPON WAKE
-    //.usart(Serial1); NOT USB PORT -> HARDWARE TX/RX 
-    //.analog(A0, 412, AnalogInterruptMode::BELOW); //412milliVolts (3.3Volt)
-    //.analog(A1, 1650, AnalogInterruptMode::CROSS);
-    //.analog(A2, 2392, AnalogInterruptMode::ABOVE); //2392milliVolts (3.3Volt)
-    // WKP Pin: Argon, Boron, and Xenon is pin D8.
-    //.gpio(D8, RISING)
-    //.gpio(D9, FALLING)
-    .gpio(D2, CHANGE)
-    .duration(1min); // <chrono> 1min, 1s, 1ms
-
-    System.sleep(config);
-  }
-
-  if( ( millis() - cTime > 100 ) ) {
-    dof();
-    cTime = millis();
-    sleepcounter++;
-  } 
+void loop() { 
+  if(digitalRead(B_TN) == LOW)
+    timer_one.changePeriod(random(15,1000));
 }
 
-void dof() {
-
-  /* UPDATE IMU READINGS: ACCELERO[3], MAGENTO[3], GYRO[3], 
-     YAW, PITCH, ROLL, HEADING */
-  accel = imu.getAccelerometer();  
-  magnetom = imu.getMagnetometer();
-  gyro = imu.getGyrometer();
-  yaw = imu.getYaw();
-  pitch = imu.getPitch();
-  roll = imu.getRoll();
-  magnitude = imu.getMagnitude();
-
-  char _buffer[205];
-  sprintf(_buffer, "~DOF,F,13,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f,%.7f",  \
-          accel[0], accel[1], accel[2], \
-          magnetom[0], magnetom[1], magnetom[2], \
-          gyro[0], gyro[1], gyro[2], \
-          yaw, pitch, roll, magnitude \
-  );
-  Serial.println(_buffer);
+void heregoesone() {
+  uint8_t _l = random(4,7);
+  digitalWrite(_l, HIGH);
+  delay(50);
+  digitalWrite(_l, LOW);
+  delay(50);
 }
