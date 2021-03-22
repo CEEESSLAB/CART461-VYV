@@ -3,6 +3,36 @@
  * Description: Capture IMU & GEOLOCATION and transmit to 
  * MAX.
  * https://web.archive.org/web/20030914224904/http://cnmat.berkeley.edu/OSC/OSC-spec.html
+ * 
+ * There are many possible strategies for optimising network performance and minimizing latency
+ * and these will tend to be specific to your use case. 
+ * 
+ * Some options to consider: 
+ * Combine fields
+ * Rather than publish/transmit several independent variables, transmit several related 
+ * variables at once in a single process. 
+ * Some common methods include: Comma-separated values, JSON
+ *
+ * Aggregate data by time
+ * If you need a time series of data and an acceptable period between transmissions is
+ * acceptable, you can then aggregate data by time. Instead of transmitting "real-time", 
+ * you could accumulate 10 samples and transmit 10 every extended period, reducing the 
+ * number of transmissions and network chatter. 
+ * 
+ * Only transmit changed data
+ * Transmit ONLY if it changes by a significantly large amount for analog-like data 
+ * using a change threshold (value differs by more than x). Or keep a mean value of 
+ * samples and transmit when the current sample deviates from the mean. 
+ * 
+ * Use TCP
+ * For Wi-Fi devices in particular, large data transfers can be done using TCP to an 
+ * external service.
+ * 
+ * Use UDP (on Wi-Fi)
+ * For a group of devices on a Wi-Fi LAN that need to communicate with each other, 
+ * UDP or UDP multicast are good options. These provide a high data rate with a 
+ * low latency, as the packets stay on the local LAN and do not have to go to 
+ * the cloud. 
  */
 
 #include <Particle.h>
